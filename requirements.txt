@@ -1,0 +1,17 @@
+aiogram
+aiogram_dialog
+aiocryptopay
+APScheduler
+asyncpg
+environs
+nats-py
+ormsgpack
+greenlet
+pydantic
+python-multipart
+SQLAlchemy
+pytz
+uvicorn
+fastapi
+dateutils
+
