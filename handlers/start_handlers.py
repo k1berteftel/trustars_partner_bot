@@ -16,7 +16,7 @@ start_router = Router()
 async def start_dialog(msg: Message, dialog_manager: DialogManager, session: DataInteraction):
     await session.add_admin(msg.from_user.id, msg.from_user.username if msg.from_user.username else 'Отсутствует',
                             msg.from_user.full_name)
-    await session.update_admin_sub(msg.from_user.id, 1)
+    #await session.update_admin_sub(msg.from_user.id, 1)
     admin = await session.get_admin(msg.from_user.id)
     if dialog_manager.has_context():
         await dialog_manager.done()
