@@ -7,7 +7,7 @@ from cachetools import TTLCache
 from aiogram import Bot
 from aiohttp import ClientSession
 from pydantic import BaseModel
-from fastapi import APIRouter, HTTPException, Request, Form, status
+from fastapi import APIRouter, HTTPException, Request, Form, status, Response
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
 from database.action_data_class import DataInteraction
@@ -87,10 +87,10 @@ async def get_freekassa_payment(amount: int, order_id: int, pay: Literal['sbp', 
     }
 
 
-async def process_payment(order_id: int, oxa_id, cb_id: int, interval: int):
+async def process_payment(order_id: int, oxa_id, cb_id: int, bot: Bot, session: DataInteraction, scheduler: AsyncIOScheduler, interval: int):
     try:
         await asyncio.wait_for(
-            _check_payment(order_id, oxa_id, cb_id, interval),
+            _check_payment(order_id, oxa_id, cb_id, bot, session, scheduler, interval),
             timeout=60 * 20)
     except TimeoutError:
         print(f"Платёж {order_id} истёк (таймаут)")
@@ -99,23 +99,65 @@ async def process_payment(order_id: int, oxa_id, cb_id: int, interval: int):
         print(f"Ошибка в фоновом ожидании платежа {order_id}: {e}")
 
 
-async def _check_payment(order_id: int, oxa_id, cb_id: int, interval: int):
+async def _check_payment(order_id: int, oxa_id, cb_id: int, bot: Bot, session: DataInteraction, scheduler: AsyncIOScheduler, interval: int):
     while True:
         status = await check_crypto_payment(cb_id)
         if status:
             order_storage[order_id]['status'] = 'paid'
+            await execute_payment(order_id, bot, session, scheduler)
             break
         status = await check_oxa_payment(oxa_id)
         if status:
             order_storage[order_id]['status'] = 'paid'
+            await execute_payment(order_id, bot, session, scheduler)
             break
         await asyncio.sleep(interval)
     return
 
 
+async def execute_payment(order_id: int, bot: Bot, session: DataInteraction, scheduler: AsyncIOScheduler):
+    order = order_storage.get(order_id)
+    user_id = order.get('user_id')
+    rate = order.get('rate')
+    amount = order.get('amount')
+    admin = await session.get_admin(user_id)
+    await session.add_general_buys(rate, amount)
+    await session.update_admin_sub(user_id, 1, rate)
+    job_id = f'check_sub_{user_id}'
+    job = scheduler.get_job(job_id)
+    if job:
+        job.remove()
+    scheduler.add_job(
+        check_sub,
+        'interval',
+        args=[user_id, bot, session, scheduler],
+        id=job_id,
+        days=1
+    )
+    if not admin.sub:
+        try:
+            await bot.send_message(
+                chat_id=user_id,
+                text='🎉<b>Поздравляю</b>, теперь вы официально партнер <b>TrustStars</b>\nЧтобы начать введите команду /start'
+            )
+        except Exception:
+            ...
+    else:
+        try:
+            await bot.send_message(
+                chat_id=user_id,
+                text='🎉<b>Вы успешно продлили свою подписку\nЧтобы продолжить введите команду /start'
+            )
+        except Exception:
+            ...
+
+
 @webapp_router.get("/webapp/payment", response_model=PaymentResponse)  # Динамический путь для каждого бота
-async def payment_handler(rate: str, user_id: int):
+async def payment_handler(response: Request, rate: str, user_id: int):
     try:
+        session: DataInteraction = response.app.state.session
+        scheduler: AsyncIOScheduler = response.app.state.scheduler
+        bot: Bot = response.app.state.bot
         usdt_rub = await _get_usdt_rub()
         usdt = rates[rate]
         amount = round(usdt * usdt_rub)
@@ -124,7 +166,7 @@ async def payment_handler(rate: str, user_id: int):
         cb_pay = await get_crypto_payment_data(amount)
         card_pay = await get_freekassa_payment(amount, order_id, 'card')
         sbp_pay = await get_freekassa_payment(amount, order_id, 'sbp')
-        task = asyncio.create_task(process_payment(order_id, oxa_pay.get('id'), cb_pay.get('id'), 5))
+        task = asyncio.create_task(process_payment(order_id, oxa_pay.get('id'), cb_pay.get('id'), bot, session, scheduler, 5))
         order_storage[order_id] = {
             'user_id': user_id,
             'status': 'pending',
