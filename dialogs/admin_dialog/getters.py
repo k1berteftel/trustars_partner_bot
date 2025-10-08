@@ -301,7 +301,7 @@ async def get_derive_amount(msg: Message, widget: ManagedTextInput, dialog_manag
         await msg.answer(text='❗️Чтобы получить выплату, пожалуйста поставьте на свой аккаунт юзернейм')
         return
     text = (f'<b>Заявка на вывод средств</b>\n\nДанные о пользователе:\n'
-            f'- Никнейм: {msg.from_user.name}\n - Username: @{msg.from_user.username}'
+            f'- Никнейм: {msg.from_user.full_name}\n - Username: @{msg.from_user.username}'
             f'\n - Telegram Id: {msg.from_user.id}\n'
             f'\n - Общий баланс: {static.earn}️₽ \n - <b>Сумма для вывода</b>: {amount}️₽ ')
     for admin in config.bot.admin_ids:

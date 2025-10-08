@@ -57,7 +57,7 @@ class PaymentResponse(BaseModel):
 
 
 class StatusResponse(BaseModel):
-    id: str
+    id: int
     status: Literal['pending', 'paid', 'failed']
 
 

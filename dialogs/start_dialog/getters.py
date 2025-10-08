@@ -42,8 +42,9 @@ async def get_token(msg: Message, widget: ManagedTextInput, dialog_manager: Dial
     webhook_url = f"{config.bot.webhook_url}webhook/{db_bot.id}"
     await bot.delete_webhook(drop_pending_updates=True)
     await bot.set_webhook(url=webhook_url, allowed_updates=allowed_updates)
-    await msg.answer('✅Бот был успешно добавлен')
+    await dialog_manager.done()
     await msg.delete()
+    await msg.answer('✅<b>Бот успешно добавлен</b>, для перезапуска введите команду /start')
     # TODO: если возможно автомат перевод в главное меню или на крайняк кнопка открытия
     """
     if dialog_manager.has_context():
