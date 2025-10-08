@@ -67,7 +67,7 @@ class DataInteraction():
 
     async def add_general_earn(self, sum: int):
         async with self._sessions() as session:
-            await session.execute(insert(GeneralStatic).values(
+            await session.execute(update(GeneralStatic).values(
                 buys=GeneralStatic.buys + 1,
                 sum=GeneralStatic.sum + sum,
                 earn=GeneralStatic.earn + round(sum * 10 / 100)
@@ -77,13 +77,13 @@ class DataInteraction():
     async def add_general_buys(self, rate: str, earn: int):
         async with self._sessions() as session:
             if rate == 'standart':
-                await session.execute(insert(GeneralStatic).values(
+                await session.execute(update(GeneralStatic).values(
                     standard=GeneralStatic.standard + 15,
                     standard_buys=GeneralStatic.standard_buys + 1,
                     earn=GeneralStatic.earn + earn
                 ))
             else:
-                await session.execute(insert(GeneralStatic).values(
+                await session.execute(update(GeneralStatic).values(
                     full=GeneralStatic.full + 30,
                     full_buys=GeneralStatic.full_buys + 1,
                     earn=GeneralStatic.earn + earn
