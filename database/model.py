@@ -19,7 +19,7 @@ class AdminsTable(Base):
     name: Mapped[str] = mapped_column(VARCHAR)
     user_id: Mapped[int] = mapped_column(BigInteger, unique=True)
     entry: Mapped[datetime.datetime] = mapped_column(DateTime(timezone=False), default=func.now())
-    rate: Mapped[Literal['standard', 'full']] = mapped_column(VARCHAR, default=None, nullable=True)
+    rate: Mapped[Literal['standart', 'full']] = mapped_column(VARCHAR, default=None, nullable=True)
     sub: Mapped[datetime.datetime] = mapped_column(DateTime(timezone=False), nullable=True, default=None)
     bot: Mapped["BotsTable"] = relationship("BotsTable", lazy="selectin", cascade='all, delete')
 
@@ -88,6 +88,8 @@ class BotStatic(Base):
     bot: Mapped[str] = mapped_column(ForeignKey('bots.token', ondelete='CASCADE'))
     payments: Mapped[int] = mapped_column(BigInteger, default=0)
     buys: Mapped[int] = mapped_column(BigInteger, default=0)
+    earn: Mapped[int] = mapped_column(Integer, default=0)
+    charge: Mapped[int] = mapped_column(Integer, default=15)
 
 
 class GeneralStatic(Base):
@@ -97,16 +99,9 @@ class GeneralStatic(Base):
 
     buys: Mapped[int] = mapped_column(BigInteger, default=0)
     sum: Mapped[int] = mapped_column(BigInteger, default=0)
+    earn: Mapped[int] = mapped_column(Integer, default=0)
     standard: Mapped[int] = mapped_column(Integer, default=0)
+    standard_buys: Mapped[int] = mapped_column(Integer, default=0)
     full: Mapped[int] = mapped_column(Integer, default=0)
-
-
-class PricesTable(Base):
-    __tablename__ = 'prices'
-
-    id: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=True)
-
-    stars_charge: Mapped[int] = mapped_column(Integer, default=15)
-    premium_charge: Mapped[int] = mapped_column(Integer, default=15)
-    ton_charge: Mapped[int] = mapped_column(Integer, default=15)
+    full_buys: Mapped[int] = mapped_column(Integer, default=0)
 

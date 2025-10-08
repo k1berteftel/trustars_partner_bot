@@ -16,7 +16,7 @@ from aiogram.enums import ParseMode
 
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
-from backend.main_router import router
+from backend import router, webapp_router
 from services.start_consumer import start_transfer_consumer
 from storage.nats_storage import NatsStorage
 from utils.nats_connect import connect_to_nats
@@ -101,6 +101,7 @@ async def main():
 
     app = FastAPI()
     app.include_router(router)
+    app.include_router(webapp_router)
     app.state.nc = nc
     app.state.js = js
     app.state.scheduler = scheduler

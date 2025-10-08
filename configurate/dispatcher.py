@@ -2,13 +2,13 @@ from aiogram import Dispatcher
 from aiogram_dialog import setup_dialogs
 
 from handlers import start_router, user_router
-from dialogs import admin_dialog, start_dialog, user_dialog, payment_dialog
+from dialogs import admin_dialog, start_dialog, user_dialog, payment_dialog, owner_dialog
 from middlewares import TransferObjectsMiddleware, RemindMiddleware
 
 
 async def configurate_dp(dp: Dispatcher):
     # подключаем роутеры
-    dp.include_routers(start_router, start_dialog, admin_dialog)
+    dp.include_routers(start_router, start_dialog, admin_dialog, owner_dialog)
 
     # подключаем middleware
     dp.update.middleware(TransferObjectsMiddleware(True))

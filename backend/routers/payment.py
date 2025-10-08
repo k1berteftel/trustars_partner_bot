@@ -87,6 +87,18 @@ async def get_freekassa_payment(amount: int, order_id: int, pay: Literal['sbp', 
     }
 
 
+async def process_payment(order_id: int, oxa_id, cb_id: int, interval: int):
+    try:
+        await asyncio.wait_for(
+            _check_payment(order_id, oxa_id, cb_id, interval),
+            timeout=60 * 20)
+    except TimeoutError:
+        print(f"Платёж {order_id} истёк (таймаут)")
+
+    except Exception as e:
+        print(f"Ошибка в фоновом ожидании платежа {order_id}: {e}")
+
+
 async def _check_payment(order_id: int, oxa_id, cb_id: int, interval: int):
     while True:
         status = await check_crypto_payment(cb_id)
@@ -112,10 +124,12 @@ async def payment_handler(rate: str, user_id: int):
         cb_pay = await get_crypto_payment_data(amount)
         card_pay = await get_freekassa_payment(amount, order_id, 'card')
         sbp_pay = await get_freekassa_payment(amount, order_id, 'sbp')
-        task = asyncio.create_task(_check_payment(order_id, oxa_pay.get('id'), cb_pay.get('id'), 5))
+        task = asyncio.create_task(process_payment(order_id, oxa_pay.get('id'), cb_pay.get('id'), 5))
         order_storage[order_id] = {
             'user_id': user_id,
-            'status': 'pending'
+            'status': 'pending',
+            'rate': rate,
+            'amount': amount
         }
         card_pay = {
             'id': 'card',
@@ -175,12 +189,19 @@ async def webapp_check_payment(response: Request, us_orderId: str = Form(...)):
     order_id = int(us_orderId)
     order = order_storage.get(order_id)
     user_id = order.get('user_id')
+    rate = order.get('rate')
+    amount = order.get('amount')
     session: DataInteraction = response.app.state.session
     scheduler: AsyncIOScheduler = response.app.state.scheduler
     bot: Bot = response.app.state.bot
     order_storage[order_id]['status'] = 'paid'
-    await session.update_admin_sub(user_id, 1)
+    admin = await session.get_admin(user_id)
+    await session.add_general_buys(rate, amount)
+    await session.update_admin_sub(user_id, 1, rate)
     job_id = f'check_sub_{user_id}'
+    job = scheduler.get_job(job_id)
+    if job:
+        job.remove()
     scheduler.add_job(
         check_sub,
         'interval',
@@ -188,4 +209,21 @@ async def webapp_check_payment(response: Request, us_orderId: str = Form(...)):
         id=job_id,
         days=1
     )
+    if not admin.sub:
+        try:
+            await bot.send_message(
+                chat_id=user_id,
+                text='🎉<b>Поздравляю</b>, теперь вы официально партнер <b>TrustStars</b>\nЧтобы начать введите команду /start'
+            )
+        except Exception:
+            ...
+    else:
+        try:
+            await bot.send_message(
+                chat_id=user_id,
+                text='🎉<b>Вы успешно продлили свою подписку\nЧтобы продолжить введите команду /start'
+            )
+        except Exception:
+            ...
+
 

@@ -34,17 +34,17 @@ async def menu_getter(event_from_user: User, dialog_manager: DialogManager, **kw
     rate = dialog_manager.dialog_data.get('rate')
     username = dialog_manager.dialog_data.get('username')
     currency = dialog_manager.dialog_data.get('currency')
-    prices = await session.get_prices()
+    static = await session.get_bot_static()
     usdt_rub = await _get_usdt_rub()
     if rate == 'stars':
         usdt = await get_stars_price(currency)
-        amount = round((usdt * usdt_rub) / (1 - prices.stars_charge / 100), 2)
+        amount = round((usdt * usdt_rub) / (1 - static.charge / 100), 2)
         usdt = round(amount / usdt_rub, 2)
         text = (f'<blockquote> - <b>Номер заказа:</b> <code>{{app_id}}</code>\n - Получатель: {username}\n'
                 f' - Количество звезд: {currency}\n - Сумма к оплате: {amount}₽ ({usdt}$)</blockquote>')
     else:
         usdt = premium_usdt[currency]
-        amount = round((usdt * usdt_rub) / (1 - prices.premium_charge / 100), 2)
+        amount = round((usdt * usdt_rub) / (1 - static.charge / 100), 2)
         usdt = round(amount / (usdt_rub), 2)
         text = (f'<blockquote> - <b>Номер заказа:</b> <code>{{app_id}}</code>\n - Получатель: {username}\n'
                 f' - Подписка на: {currency} (месяцы)\n - Сумма к оплате: {amount}₽ ({usdt}$)</blockquote>')
@@ -69,17 +69,17 @@ async def payment_choose(clb: CallbackQuery, widget: Button, dialog_manager: Dia
     currency = dialog_manager.dialog_data.get('currency')
     username = dialog_manager.dialog_data.get('username')
     promo = dialog_manager.dialog_data.get('promo')
-    prices = await session.get_prices()
+    static = await session.get_bot_static()
     usdt_rub = await _get_usdt_rub()
     if rate == 'stars':
         usdt = await get_stars_price(currency)
-        amount = round((usdt * usdt_rub) / (1 - prices.stars_charge / 100), 2)
+        amount = round((usdt * usdt_rub) / (1 - static.charge / 100), 2)
         if promo:
             amount = amount - (amount * promo / 100)
         usdt = round(amount / usdt_rub, 2)
     else:
         usdt = premium_usdt[currency]
-        amount = round((usdt * usdt_rub) / (1 - prices.premium_charge / 100), 2)
+        amount = round((usdt * usdt_rub) / (1 - static.charge / 100), 2)
         usdt = round(amount / (usdt_rub), 2)
 
     if payment_type == 'card':

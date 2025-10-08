@@ -1,6 +1,5 @@
 import asyncio
 from aiogram import Bot
-from aiogram import Bot
 from aiogram_dialog import DialogManager
 from aiogram.types import InlineKeyboardMarkup, Message
 from datetime import datetime, timedelta
@@ -75,8 +74,15 @@ async def check_sub(user_id: int, bot: Bot, session: DataInteraction, scheduler:
         text = f'До окончания периода подписки остался 1 день'
     if dif <= 0:
         text = 'К сожалению срок действия подписки подошел к концу'
-        job_id = f'check_sub_{user_id}'
         await session.update_admin_sub(user_id, None)
+
+        token = user.bot.token
+        session: DataInteraction = DataInteraction(session._sessions, user.bot.token)
+        await session.set_bot_active(False)
+        admin_bot = Bot(token=token)
+        await admin_bot.delete_webhook()
+
+        job_id = f'check_sub_{user_id}'
         job = scheduler.get_job(job_id=job_id)
         if job:
             job.remove()

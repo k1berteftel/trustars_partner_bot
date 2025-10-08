@@ -2,7 +2,7 @@ import os
 import datetime
 
 from aiogram import Bot
-from aiogram.types import CallbackQuery, User, Message, FSInputFile, InlineKeyboardMarkup, InlineKeyboardButton
+from aiogram.types import CallbackQuery, User, Message, FSInputFile, InlineKeyboardMarkup, InlineKeyboardButton, WebAppInfo
 from aiogram.enums.chat_action import ChatAction
 from aiogram.client.default import DefaultBotProperties
 from aiogram.enums import ParseMode
@@ -17,6 +17,9 @@ from utils.schedulers import send_messages
 from database.action_data_class import DataInteraction
 from config_data.config import load_config, Config
 from states.state_groups import startSG, adminSG
+
+
+config: Config = load_config()
 
 
 async def menu_getter(event_from_user: User, dialog_manager: DialogManager, **kwargs):
@@ -44,17 +47,33 @@ async def menu_getter(event_from_user: User, dialog_manager: DialogManager, **kw
                     entry['2_day_ago'] = entry.get('2_day_ago') + 1
         if user.activity.timestamp() > (datetime.datetime.today() - datetime.timedelta(days=1)).timestamp():
             activity += 1
+
     statistic = await session.get_bot_static()
     text = (f'<b>Статистика на {datetime.datetime.today().strftime("%d-%m-%Y")}</b>\n\nВсего пользователей: {len(users)}'
             f'\n - Активные пользователи(не заблокировали бота): {active}\n - Пользователей заблокировали '
             f'бота: {len(users) - active}\n - Провзаимодействовали с ботом за последние 24 часа: {activity}\n\n'
             f'<b>Прирост аудитории:</b>\n - За сегодня: +{entry.get("today")}\n - Вчера: +{entry.get("yesterday")}'
-            f'\n - Позавчера: + {entry.get("2_day_ago")}\n\n<b>Общая выручка:</b>\n'
-            f' - Всего покупок: {statistic.payments}\n - Сумма покупок: {statistic.buys}\n')  # <b>Вы заработали</b>:
+            f'\n - Позавчера: + {entry.get("2_day_ago")}\n\n<b>Общая выручка:</b> {statistic.earn}₽ \n'
+            f' - Всего покупок: {statistic.payments}\n - Сумма покупок: {statistic.buys}₽ \n')  # <b>Вы заработали</b>:
     return {
         'text': text,
         'full': admin.rate == 'full'
     }
+
+
+async def refresh_static(clb: CallbackQuery, widget: Button, dialog_manager: DialogManager):
+    await dialog_manager.switch_to(adminSG.start)
+
+
+async def extend_message(clb: CallbackQuery, widget: Button, dialog_manager: DialogManager):
+    web_app = WebAppInfo(url=config.bot.webhook_url + 'rates')
+    keyboard = InlineKeyboardMarkup(
+        inline_keyboard=[[InlineKeyboardButton(text='⭐️Продлить', web_app=web_app)]]
+    )
+    await clb.message.answer(
+        text='<b>Добро пожаловать, партнер!</b> Жми кнопку ниже и '
+             'переходи в мини-приложение, чтобы начать зарабатывать вместе с нами!💰',
+        reply_markup=keyboard)
 
 
 async def check_activity(clb: CallbackQuery, widget: Button, dialog_manager: DialogManager):
@@ -128,6 +147,28 @@ async def del_deeplink_getter(dialog_manager: DialogManager, **kwargs):
     return {'items': buttons}
 
 
+async def set_charge_getter(dialog_manager: DialogManager, **kwargs):
+    session: DataInteraction = dialog_manager.middleware_data.get('session')
+    static = await session.get_bot_static()
+    return {
+        'charge': static.charge
+    }
+
+
+async def get_charge(msg: Message, widget: ManagedTextInput, dialog_manager: DialogManager, text: str):
+    try:
+        charge = int(text)
+    except Exception:
+        await msg.answer('❗️Введите пожалуйста число (от 0 до 100')
+        return
+    if not (10 <= charge < 100):
+        await msg.answer('❗️Наценка должна быть не менее 10% и не более 100%')
+        return
+    session: DataInteraction = dialog_manager.middleware_data.get('session')
+    await session.set_charge(charge)
+    await dialog_manager.switch_to(adminSG.set_charge)
+
+
 async def get_mail(msg: Message, widget: MessageInput, dialog_manager: DialogManager):
     if msg.text:
         dialog_manager.dialog_data['text'] = msg.text
@@ -155,7 +196,7 @@ async def get_time(msg: Message, widget: ManagedTextInput, dialog_manager: Dialo
 
 async def get_mail_keyboard(msg: Message, widget: ManagedTextInput, dialog_manager: DialogManager, text: str):
     try:
-        buttons = text.split('\n')
+        buttons = text.strip().split('\n')
         keyboard: list[tuple] = [(i.split('-')[0].strip(), i.split('-')[1].strip()) for i in buttons]
     except Exception as err:
         print(err)
@@ -227,7 +268,7 @@ async def start_malling(clb: CallbackQuery, widget: Button, dialog_manager: Dial
                         await session.set_active(user.user_id, 0)
     else:
         date = datetime.datetime.strptime(time, '%H:%M %d.%m')
-        date = date.replace(year=datetime.datetime.today().year)
+        date = date.replace(year=datetime.datetime.now().year)
         scheduler.add_job(
             func=send_messages,
             args=[bot, session, InlineKeyboardMarkup(inline_keyboard=[keyboard]) if keyboard else None],
@@ -239,6 +280,40 @@ async def start_malling(clb: CallbackQuery, widget: Button, dialog_manager: Dial
             },
             next_run_time=date
         )
+    dialog_manager.dialog_data.clear()
+    await dialog_manager.switch_to(adminSG.start)
+
+
+async def get_derive_amount(msg: Message, widget: ManagedTextInput, dialog_manager: DialogManager, text: str):
+    try:
+        amount = int(text)
+    except Exception:
+        await msg.delete()
+        await msg.answer('❗️Сумма для вывода должна быть числом, пожалуйста попробуйте снова')
+        return
+    session: DataInteraction = dialog_manager.middleware_data.get('session')
+    static = await session.get_bot_static()
+    if amount > static.earn:
+        await msg.answer('❗️Сумма для вывода должна быть не больше той что сейчас у вас')
+        return
+    username = msg.from_user.username
+    if not username:
+        await msg.answer(text='❗️Чтобы получить выплату, пожалуйста поставьте на свой аккаунт юзернейм')
+        return
+    text = (f'<b>Заявка на вывод средств</b>\n\nДанные о пользователе:\n'
+            f'- Никнейм: {msg.from_user.name}\n - Username: @{msg.from_user.username}'
+            f'\n - Telegram Id: {msg.from_user.id}\n'
+            f'\n - Общий баланс: {static.earn}️₽ \n - <b>Сумма для вывода</b>: {amount}️₽ ')
+    for admin in config.bot.admin_ids:
+        try:
+            await msg.bot.send_message(
+                chat_id=admin,
+                text=text
+            )
+        except Exception:
+            ...
+    await session.clear_earn()
+    await msg.answer('✅Заявка на вывод средств была успешно отправлена')
     dialog_manager.dialog_data.clear()
     await dialog_manager.switch_to(adminSG.start)
 

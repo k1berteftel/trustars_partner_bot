@@ -14,6 +14,10 @@ class adminSG(StatesGroup):
     deeplink_menu = State()
     deeplink_del = State()
 
+    set_charge = State()
+
+    get_derive_amount = State()
+
 
 class InitialSG(StatesGroup):
     start = State()
@@ -36,4 +40,8 @@ class startSG(StatesGroup):
 class PaymentSG(StatesGroup):
     menu = State()
     process_payment = State()
+
+
+class OwnerSG(StatesGroup):
+    start = State()
 

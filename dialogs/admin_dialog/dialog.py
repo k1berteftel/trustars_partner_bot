@@ -13,13 +13,30 @@ admin_dialog = Dialog(
     Window(
         Format('{text}'),
         Column(
+            Button(Const('🔄Обновить статистику'), id='refresh_static', on_click=getters.refresh_static),
             SwitchTo(Const('🛫Сделать рассылку'), id='mailing_menu_switcher', state=adminSG.get_mail),
             SwitchTo(Const('🔗 Управление диплинками'), id='deeplinks_menu_switcher', state=adminSG.deeplink_menu),
-            Button(Const('🔄Проверить активность'), id='check_activity', on_click=getters.check_activity),
+            Button(Const('📩Проверить активность'), id='check_activity', on_click=getters.check_activity),
+            SwitchTo(Const('🏦Установить наценку'), id='charge_set_switcher', state=adminSG.set_charge),
+            SwitchTo(Const('💰Вывод средств'), id='get_derive_amount', state=adminSG.get_derive_amount),
+            Button(Const('Продлить тариф'), id='send_extend_message', on_click=getters.extend_message),
             Url(Const('👤Ваш менеджер'), id='personal_manager_url', url=Const('https://t.me/Leggit_Russia'), when='full'),
         ),
         getter=getters.menu_getter,
         state=adminSG.start
+    ),
+    Window(
+        Format('🫰Действующая наценка на все: {charge}%'),
+        Const('<em>Ваша прибыль с бота формируется от 10% наценки на все продукты данного бота, т.е все '
+              'проценты наценки что выше 10%: 15%, 20% приносят вам соотвественно 5 и 10 процентов прибыли</em>'),
+        Const('\nДля смены действующей наценки введите число своей наценки ниже👇'),
+        TextInput(
+            id='get_charge',
+            on_success=getters.get_charge
+        ),
+        SwitchTo(Const('🔙 Назад'), id='back', state=adminSG.start),
+        getter=getters.set_charge_getter,
+        state=adminSG.set_charge
     ),
     Window(
         Format('🔗 *Меню управления диплинками*\n\n'
@@ -55,7 +72,7 @@ admin_dialog = Dialog(
             content_types=ContentType.ANY,
             func=getters.get_mail
         ),
-        SwitchTo(Const('Назад'), id='back', state=adminSG.start),
+        SwitchTo(Const('🔙 Назад'), id='back', state=adminSG.start),
         state=adminSG.get_mail
     ),
     Window(
@@ -66,7 +83,7 @@ admin_dialog = Dialog(
             on_success=getters.get_time
         ),
         SwitchTo(Const('Продолжить без отложки'), id='get_keyboard_switcher', state=adminSG.get_keyboard),
-        SwitchTo(Const('Назад'), id='back_get_mail', state=adminSG.get_mail),
+        SwitchTo(Const('🔙 Назад'), id='back_get_mail', state=adminSG.get_mail),
         state=adminSG.get_time
     ),
     Window(
@@ -77,7 +94,7 @@ admin_dialog = Dialog(
             on_success=getters.get_mail_keyboard
         ),
         SwitchTo(Const('Продолжить без кнопок'), id='confirm_mail_switcher', state=adminSG.confirm_mail),
-        SwitchTo(Const('Назад'), id='back_get_time', state=adminSG.get_time),
+        SwitchTo(Const('🔙 Назад'), id='back_get_time', state=adminSG.get_time),
         state=adminSG.get_keyboard
     ),
     Window(
@@ -86,7 +103,16 @@ admin_dialog = Dialog(
             Button(Const('Да'), id='start_malling', on_click=getters.start_malling),
             Button(Const('Нет'), id='cancel_malling', on_click=getters.cancel_malling),
         ),
-        SwitchTo(Const('Назад'), id='back_get_keyboard', state=adminSG.get_keyboard),
+        SwitchTo(Const('🔙 Назад'), id='back_get_keyboard', state=adminSG.get_keyboard),
         state=adminSG.confirm_mail
+    ),
+    Window(
+        Const('Введите сумму для вывода <em>(в рублях)</em>'),
+        TextInput(
+            id='get_derive_amount',
+            on_success=getters.get_derive_amount
+        ),
+        SwitchTo(Const('🔙 Назад'), id='back', state=adminSG.start),
+        state=adminSG.get_derive_amount
     ),
 )

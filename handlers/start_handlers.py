@@ -1,10 +1,10 @@
 from aiogram import Router, F, Bot
-from aiogram.filters import CommandStart, CommandObject
+from aiogram.filters import CommandStart, CommandObject, Command
 from aiogram.types import Message, CallbackQuery, InlineKeyboardMarkup, InlineKeyboardButton, WebAppInfo
 from aiogram_dialog import DialogManager, StartMode
 
 from database.action_data_class import DataInteraction
-from states.state_groups import InitialSG, adminSG
+from states.state_groups import InitialSG, adminSG, OwnerSG
 from config_data.config import Config, load_config
 
 
@@ -16,7 +16,7 @@ start_router = Router()
 async def start_dialog(msg: Message, dialog_manager: DialogManager, session: DataInteraction):
     await session.add_admin(msg.from_user.id, msg.from_user.username if msg.from_user.username else 'Отсутствует',
                             msg.from_user.full_name)
-    #await session.update_admin_sub(msg.from_user.id, 1)
+    await session.update_admin_sub(msg.from_user.id, 1, 'full')
     admin = await session.get_admin(msg.from_user.id)
     if dialog_manager.has_context():
         await dialog_manager.done()
@@ -38,3 +38,10 @@ async def start_dialog(msg: Message, dialog_manager: DialogManager, session: Dat
         await dialog_manager.start(InitialSG.start, mode=StartMode.RESET_STACK)
         return
     await dialog_manager.start(adminSG.start, mode=StartMode.RESET_STACK)
+
+
+@start_router.message(Command('admin'))
+async def start_owner_dialog(msg: Message, dialog_manager: DialogManager):
+    if msg.from_user.id not in config.bot.admin_ids:
+        return
+    await dialog_manager.start(OwnerSG.start, mode=StartMode.RESET_STACK)

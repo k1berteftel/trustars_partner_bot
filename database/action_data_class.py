@@ -6,16 +6,13 @@ from sqlalchemy import select, insert, update, column, text, delete, and_
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 from database.model import (UsersTable, DeeplinksTable, AdminsTable, ApplicationsTable, BotsTable,
-                            BotStatic, GeneralStatic, PricesTable)
+                            BotStatic, GeneralStatic)
 
 
 async def setup_database(session: async_sessionmaker):
     async with session() as session:
         if not await session.scalar(select(GeneralStatic)):
             await session.execute(insert(GeneralStatic).values(
-            ))
-        if not await session.scalar(select(PricesTable)):
-            await session.execute(insert(PricesTable).values(
             ))
         await session.commit()
 
@@ -68,6 +65,31 @@ class DataInteraction():
             ))
             await session.commit()
 
+    async def add_general_earn(self, sum: int):
+        async with self._sessions() as session:
+            await session.execute(insert(GeneralStatic).values(
+                buys=GeneralStatic.buys + 1,
+                sum=GeneralStatic.sum + sum,
+                earn=GeneralStatic.earn + round(sum * 10 / 100)
+            ))
+            await session.commit()
+
+    async def add_general_buys(self, rate: str, earn: int):
+        async with self._sessions() as session:
+            if rate == 'standart':
+                await session.execute(insert(GeneralStatic).values(
+                    standard=GeneralStatic.standard + 15,
+                    standard_buys=GeneralStatic.standard_buys + 1,
+                    earn=GeneralStatic.earn + earn
+                ))
+            else:
+                await session.execute(insert(GeneralStatic).values(
+                    full=GeneralStatic.full + 30,
+                    full_buys=GeneralStatic.full_buys + 1,
+                    earn=GeneralStatic.earn + earn
+                ))
+            await session.commit()
+
     async def add_bot_static(self, token: str):
         async with self._sessions() as session:
             await session.execute(insert(BotStatic).values(
@@ -106,9 +128,12 @@ class DataInteraction():
             await session.commit()
 
     async def add_buys(self, sum: int):
+        static = await self.get_bot_static()
+        await self.add_general_earn(sum)
         async with self._sessions() as session:
             await session.execute(update(BotStatic).where(BotStatic.bot == self._token).values(
-                buys=BotStatic.buys + sum
+                buys=BotStatic.buys + sum,
+                earn=BotStatic.earn + round(sum * (static.charge - 10) / 100)
             ))
             await session.commit()
 
@@ -196,6 +221,11 @@ class DataInteraction():
             result = await session.scalar(select(BotStatic).where(BotStatic.bot == self._token))
         return result
 
+    async def get_general_static(self):
+        async with self._sessions() as session:
+            result = await session.scalar(select(GeneralStatic))
+        return result
+
     async def get_admins(self):
         async with self._sessions() as session:
             result = await session.scalars(select(AdminsTable))
@@ -211,12 +241,7 @@ class DataInteraction():
             result = await session.scalars(select(DeeplinksTable).where(DeeplinksTable.bot == self._token))
         return result.fetchall()
 
-    async def get_prices(self):
-        async with self._sessions() as session:
-            result = await session.scalar(select(PricesTable))
-        return result
-
-    async def update_admin_sub(self, user_id: int, months: int | None):
+    async def update_admin_sub(self, user_id: int, months: int | None, rate: Literal['standart', 'full'] | None = None):
         sub = None
         new = False
         if isinstance(months, int):
@@ -228,7 +253,8 @@ class DataInteraction():
                 sub = datetime.datetime.now() + relativedelta(months=months)
         async with self._sessions() as session:
             await session.execute(update(AdminsTable).where(AdminsTable.user_id == user_id).values(
-                sub=sub
+                sub=sub,
+                rate=rate
             ))
             await session.commit()
         return new
@@ -251,10 +277,10 @@ class DataInteraction():
             ))
             await session.commit()
 
-    async def set_charge(self, **kwargs):
+    async def set_charge(self, charge: int):
         async with self._sessions() as session:
-            await session.execute(update(PricesTable).values(
-                kwargs
+            await session.execute(update(BotStatic).where(BotStatic.bot == self._token).values(
+                charge=charge
             ))
             await session.commit()
 
@@ -298,4 +324,11 @@ class DataInteraction():
     async def del_admin(self, user_id: int):
         async with self._sessions() as session:
             await session.execute(delete(AdminsTable).where(AdminsTable.user_id == user_id))
+            await session.commit()
+
+    async def clear_earn(self):
+        async with self._sessions() as session:
+            await session.execute(update(BotStatic).where(BotStatic.bot == self._token).values(
+                earn=0
+            ))
             await session.commit()
