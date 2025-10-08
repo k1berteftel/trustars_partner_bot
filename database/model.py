@@ -54,7 +54,7 @@ class ApplicationsTable(Base):
 
     uid_key: Mapped[int] = mapped_column(BigInteger, primary_key=True)
 
-    user_id: Mapped[int] = mapped_column(ForeignKey('users.id'))
+    user_id: Mapped[int] = mapped_column(ForeignKey('users.id', ondelete='CASCADE'))
     receiver: Mapped[str] = mapped_column(VARCHAR)
     amount: Mapped[int] = mapped_column(Integer)
     rub: Mapped[int] = mapped_column(Integer)

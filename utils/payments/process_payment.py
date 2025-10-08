@@ -66,12 +66,10 @@ async def _poll_payment(payment_id, user_id: int, app_id: int, currency: int, js
 
 async def execute_rate(app_id: int, currency: int, rate: str, payment_type: str, js: JetStreamContext, bot: Bot, session: DataInteraction):
     logger.info('open execute rate')
-    logger.info(f'input data: {app_id}')
+    logger.info(f'input data: {app_id}, {currency}, {rate}, {payment_type}')
     application = await session.get_application(app_id)
-    logger.info(f'process data: {application}')
-    logger.info(f'input bot data: {bot}')
     db_bot = await session.get_bot_by_token(bot.token)
-    logger.info(f'process data: {db_bot}')
+    logger.info(f'process data: {application.receiver}, {application.uid_key}')
     data = {
         'transfer_type': rate,
         'username': application.receiver,
@@ -80,7 +78,6 @@ async def execute_rate(app_id: int, currency: int, rate: str, payment_type: str,
         'app_id': application.uid_key,
         'bot_id': db_bot.id
     }
-    await bot.send_message(application.user_id, 'Начался процесс перевода звезд')
     logger.info('send data')
     await send_publisher_data(
         js=js,
