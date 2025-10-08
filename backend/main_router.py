@@ -33,6 +33,7 @@ async def common_webhook_handler(bot_id: str, request: Request):
     telegram_update = types.Update.model_validate(update)
 
     session: DataInteraction = request.app.state.session
+    js: JetStreamContext = request.app.state.js
     dp: Dispatcher = request.app.state.dp
     scheduler: AsyncIOScheduler = request.app.state.scheduler
 
@@ -40,7 +41,7 @@ async def common_webhook_handler(bot_id: str, request: Request):
     bot = Bot(token=db_bot.token, default=DefaultBotProperties(parse_mode=ParseMode.HTML))
 
     try:
-        await dp.feed_update(bot=bot, update=telegram_update, _session=session._sessions, _scheduler=scheduler)
+        await dp.feed_update(bot=bot, update=telegram_update, _session=session._sessions, _scheduler=scheduler, js=js)
     except Exception as err:
         print(err)
         await bot.session.close()

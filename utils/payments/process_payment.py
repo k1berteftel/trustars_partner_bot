@@ -65,11 +65,8 @@ async def _poll_payment(payment_id, user_id: int, app_id: int, currency: int, js
 
 
 async def execute_rate(app_id: int, currency: int, rate: str, payment_type: str, js: JetStreamContext, bot: Bot, session: DataInteraction):
-    logger.info('open execute rate')
-    logger.info(f'input data: {app_id}, {currency}, {rate}, {payment_type}')
     application = await session.get_application(app_id)
     db_bot = await session.get_bot_by_token(bot.token)
-    logger.info(f'process data: {application.receiver}, {application.uid_key}')
     data = {
         'transfer_type': rate,
         'username': application.receiver,
