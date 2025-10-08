@@ -19,7 +19,7 @@ config: Config = load_config()
 async def wait_for_payment(
         payment_id,
         user_id: int,
-        app_id,
+        app_id: int,
         bot: Bot,
         session: DataInteraction,
         js: JetStreamContext,
@@ -37,13 +37,13 @@ async def wait_for_payment(
                                timeout=timeout)
 
     except TimeoutError:
-        print(f"Платёж {payment_id} истёк (таймаут)")
+        logger.warning(f"Платёж {payment_id} истёк (таймаут)")
 
     except Exception as e:
-        print(f"Ошибка в фоновом ожидании платежа {payment_id}: {e}")
+        logger.warning(f"Ошибка в фоновом ожидании платежа {payment_id}: {e}")
 
 
-async def _poll_payment(payment_id, user_id: int, app_id, currency: int, js: JetStreamContext, bot: Bot, session: DataInteraction, rate: str, payment_type: str, interval: int):
+async def _poll_payment(payment_id, user_id: int, app_id: int, currency: int, js: JetStreamContext, bot: Bot, session: DataInteraction, rate: str, payment_type: str, interval: int):
     """
     Цикл опроса статуса платежа.
     Завершается, когда платёж оплачен.
@@ -64,9 +64,14 @@ async def _poll_payment(payment_id, user_id: int, app_id, currency: int, js: Jet
         await asyncio.sleep(interval)
 
 
-async def execute_rate(app_id, currency: int, rate: str, payment_type: str, js: JetStreamContext, bot: Bot, session: DataInteraction):
+async def execute_rate(app_id: int, currency: int, rate: str, payment_type: str, js: JetStreamContext, bot: Bot, session: DataInteraction):
+    logger.info('open execute rate')
+    logger.info(f'input data: {app_id}')
     application = await session.get_application(app_id)
+    logger.info(f'process data: {application}')
+    logger.info(f'input bot data: {bot}')
     db_bot = await session.get_bot_by_token(bot.token)
+    logger.info(f'process data: {db_bot}')
     data = {
         'transfer_type': rate,
         'username': application.receiver,
