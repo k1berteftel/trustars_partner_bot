@@ -1,5 +1,6 @@
 from typing import Literal
 import asyncio
+import logging
 from asyncio import TimeoutError
 
 from aiogram import Bot
@@ -11,6 +12,7 @@ from database.action_data_class import DataInteraction
 from config_data.config import Config, load_config
 
 
+logger = logging.getLogger(__name__)
 config: Config = load_config()
 
 
@@ -56,7 +58,7 @@ async def _poll_payment(payment_id, user_id: int, app_id, currency: int, js: Jet
                 chat_id=user_id,
                 text='✅Оплата прошла успешно'
             )
-            print('execute rate')
+            logger.info('execute rate')
             await execute_rate(app_id, currency, rate, payment_type, js,  bot, session)
             break
         await asyncio.sleep(interval)
@@ -73,7 +75,8 @@ async def execute_rate(app_id, currency: int, rate: str, payment_type: str, js: 
         'app_id': application.uid_key,
         'bot_id': db_bot.id
     }
-    print('send data')
+    await bot.send_message(application.user_id, 'Начался процесс перевода звезд')
+    logger.info('send data')
     await send_publisher_data(
         js=js,
         subject=config.consumer.subject,
