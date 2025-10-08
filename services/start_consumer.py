@@ -28,5 +28,5 @@ async def start_transfer_consumer(
         stream=stream,
         durable_name=durable_name
     )
-    logger.info('Start AI message consumer')
+    logger.info('Start transactions consumer')
     await consumer.start()

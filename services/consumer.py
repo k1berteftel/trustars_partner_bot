@@ -75,7 +75,7 @@ class TransactionConsumer:
             maxsize=1000,
             ttl=60 * 15
         )
-        logger.info('start TransactionConsumer')
+        logger.info('(start) TransactionConsumer')
 
     async def on_message(self, message: Msg):
         data = json.loads(message.data.decode())

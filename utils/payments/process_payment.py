@@ -56,6 +56,7 @@ async def _poll_payment(payment_id, user_id: int, app_id, currency: int, js: Jet
                 chat_id=user_id,
                 text='✅Оплата прошла успешно'
             )
+            print('execute rate')
             await execute_rate(app_id, currency, rate, payment_type, js,  bot, session)
             break
         await asyncio.sleep(interval)
@@ -72,6 +73,7 @@ async def execute_rate(app_id, currency: int, rate: str, payment_type: str, js: 
         'app_id': application.uid_key,
         'bot_id': db_bot.id
     }
+    print('send data')
     await send_publisher_data(
         js=js,
         subject=config.consumer.subject,
