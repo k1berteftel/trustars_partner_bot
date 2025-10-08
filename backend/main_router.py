@@ -40,7 +40,7 @@ async def common_webhook_handler(bot_id: str, request: Request):
     bot = Bot(token=db_bot.token, default=DefaultBotProperties(parse_mode=ParseMode.HTML))
 
     try:
-        await dp.feed_update(bot=bot, update=telegram_update, _session=session, _scheduler=scheduler)
+        await dp.feed_update(bot=bot, update=telegram_update, _session=session._sessions, _scheduler=scheduler)
     except Exception as err:
         print(err)
         await bot.session.close()
