@@ -216,6 +216,15 @@ class DataInteraction():
             ))
         return result
 
+    async def get_user_by_id(self, id: int):
+        async with self._sessions() as session:
+            result = await session.scalar(select(UsersTable).where(and_(
+                    UsersTable.id == id,
+                    UsersTable.bot == self._token
+                )
+            ))
+        return result
+
     async def get_bot_static(self):
         async with self._sessions() as session:
             result = await session.scalar(select(BotStatic).where(BotStatic.bot == self._token))

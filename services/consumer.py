@@ -98,7 +98,8 @@ class TransactionConsumer:
         bot = Bot(token=db_bot.token, default=DefaultBotProperties(parse_mode=ParseMode.HTML))
 
         application = await session.get_application(app_id)
-        user_id = application.user_id
+        user = await session.get_user_by_id(application.user_id)
+        user_id = user.user_id
         try:
             if buy == 'stars':
                 status = await transfer_stars(username, currency)
@@ -146,6 +147,7 @@ class TransactionConsumer:
                 )
             except Exception:
                 ...
+            logger.info(f'consumer task exception: {err}')
         finally:
             await message.ack()
 
