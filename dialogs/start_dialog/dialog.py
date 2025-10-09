@@ -22,7 +22,7 @@ start_dialog = Dialog(
             on_success=getters.get_token
         ),
         Column(
-            Url(Const('📝Инструкция'), id='manual_url', url=Const('https://t.me/Origandtocha_bot')),
+            Url(Const('📝Инструкция'), id='manual_url', url=Const('https://telegra.ph/Instrukciya-po-sozdaniyu-tokena-cherez-BotFather-10-09')),
         ),
         state=InitialSG.get_token
     ),
