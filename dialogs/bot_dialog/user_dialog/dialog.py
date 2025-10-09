@@ -20,7 +20,7 @@ user_dialog = Dialog(
         ),
         Column(
             SwitchTo(Const('📋Правила'), id='rules_menu_switcher', state=startSG.rules_menu),
-            #Url(Const('📩Поддержка'), id='support_url', url=Const('https://t.me/TrustStarsHelp')),
+            Url(Const('📩Поддержка'), id='support_url', url=Const('https://t.me/TrustStarsHelp')),
         ),
         state=startSG.start
     ),
