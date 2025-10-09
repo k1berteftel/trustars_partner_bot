@@ -21,6 +21,7 @@ admin_dialog = Dialog(
             SwitchTo(Const('💰Вывод средств'), id='get_derive_amount', state=adminSG.get_derive_amount),
             Button(Const('Продлить тариф'), id='send_extend_message', on_click=getters.extend_message),
             Url(Const('👤Ваш менеджер'), id='personal_manager_url', url=Const('https://t.me/Leggit_Russia'), when='full'),
+            Url(Const('ℹ️Поддержка'), id='support_url', url=Const('https://t.me/TrustStarsHelp')),
         ),
         getter=getters.menu_getter,
         state=adminSG.start
