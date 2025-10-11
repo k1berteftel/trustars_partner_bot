@@ -1,4 +1,5 @@
 import datetime
+from typing import Literal
 
 from aiogram import Bot
 from aiogram.types import CallbackQuery, User, Message, FSInputFile, InlineKeyboardMarkup, InlineKeyboardButton
@@ -11,6 +12,7 @@ from aiogram_dialog.widgets.kbd import Button, Select
 from aiogram_dialog.widgets.input import ManagedTextInput, MessageInput
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
+from utils.schedulers import check_sub
 from database.action_data_class import DataInteraction
 from config_data.config import load_config, Config
 from states.state_groups import OwnerSG
@@ -43,6 +45,45 @@ async def get_static(clb: CallbackQuery, widget: Button, dialog_manager: DialogM
             f'<b>Прирост партнеров:</b>\n - За сегодня: +{entry.get("today")}\n - Вчера: +{entry.get("yesterday")}'
             f'\n - Позавчера: + {entry.get("2_day_ago")}\n\n<b>Общие показатели продаж:</b>\n'
             f'- Всего покупок (в ботах) - {static.buys}\n - Продано на сумму: {static.sum}₽\n<b>По тарифам:</b>\n'
-            f' -Покупок <em>STANDART</em>: {static.standard_buys} ({static.standard}₽)\n - Покупок <em>FULL</em>: '
-            f'{static.full_buys} ({static.full}₽)\n\n<b>Всего заработано: {static.earn}₽</b>')
+            f' -Покупок <em>STANDART</em>: {static.standard_buys} ({static.standard}$)\n - Покупок <em>FULL</em>: '
+            f'{static.full_buys} ({static.full}$)\n\n<b>Всего заработано: {static.earn}₽</b>')
     await clb.message.answer(text)
+
+
+async def get_admin_data(msg: Message, widget: ManagedTextInput, dialog_manager: DialogManager, text: str):
+    session: DataInteraction = dialog_manager.middleware_data.get('session')
+    try:
+        user_id = int(text)
+        user = await session.get_admin(user_id)
+    except Exception:
+        if not text.startswith('@'):
+            await msg.answer('Юзернейм должен начинаться с @ , пожалуйста попробуйте снова')
+            return
+        user = await session.get_admin_by_username(text[1::])
+    if not user:
+        await msg.answer('Такого пользователя в боте не найдено, пожалуйста попробуйте еще раз')
+        return
+    dialog_manager.dialog_data['user_id'] = user.user_id
+    await dialog_manager.switch_to(OwnerSG.rate_choose)
+
+
+async def rate_choose(clb: CallbackQuery, widget: Button, dialog_manager: DialogManager):
+    rate = clb.data.split('_')[0]
+    session: DataInteraction = dialog_manager.middleware_data.get('session')
+    scheduler: AsyncIOScheduler = dialog_manager.middleware_data.get('scheduler')
+    user_id = dialog_manager.dialog_data.get('user_id')
+    await session.update_admin_sub(user_id, 1, rate)
+    job_id = f'check_sub_{user_id}'
+    job = scheduler.get_job(job_id)
+    if job:
+        job.remove()
+    scheduler.add_job(
+        check_sub,
+        'interval',
+        args=[user_id, clb.bot, session, scheduler],
+        id=job_id,
+        days=1
+    )
+    await clb.answer('Подписка была успешно выдана')
+    dialog_manager.dialog_data.clear()
+    await dialog_manager.switch_to(OwnerSG.start)

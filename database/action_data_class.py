@@ -245,6 +245,11 @@ class DataInteraction():
             result = await session.scalar(select(AdminsTable).where(AdminsTable.user_id == user_id))
         return result
 
+    async def get_admin_by_username(self, username: str):
+        async with self._sessions() as session:
+            result = await session.scalar(select(AdminsTable).where(AdminsTable.username == username))
+        return result
+
     async def get_deeplinks(self):
         async with self._sessions() as session:
             result = await session.scalars(select(DeeplinksTable).where(DeeplinksTable.bot == self._token))

@@ -45,3 +45,6 @@ class PaymentSG(StatesGroup):
 class OwnerSG(StatesGroup):
     start = State()
 
+    get_admin_data = State()
+    rate_choose = State()
+
