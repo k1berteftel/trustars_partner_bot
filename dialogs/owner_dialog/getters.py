@@ -58,9 +58,9 @@ async def upload_partners(clb: CallbackQuery, widget: Button, dialog_manager: Di
     admins = await session.get_admins()
     columns = []
     for admin in admins:
-        if admin.sub:
+        if admin.sub and admin.bot:
             bot_db: BotsTable = admin.bot
-            bot = Bot(bot_db.token)
+            bot = Bot(token=bot_db.token)
             bot_data = await bot.get_me()
             static = await session.get_bot_static(bot_db.token)
             columns.append(
