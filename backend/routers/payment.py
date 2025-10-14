@@ -70,7 +70,7 @@ async def get_freekassa_payment(amount: int, order_id: int, pay: Literal['sbp', 
         'i': 44 if pay == 'sbp' else 36,
         'email': f'{order_id}@telegram.org',
         'ip': '5.35.91.55',
-        'success_url': config.bot.webhook_url + 'webapp/payment',
+        'success_url': config.bot.webhook_url + 'webapp/check_pay',
         'amount': str(amount),
         'currency': 'RUB'
     }
@@ -220,7 +220,7 @@ async def pay_status_handler(order_id: int):
     }
 
 
-@webapp_router.post('/webapp/payment')
+@webapp_router.post('/webapp/check_pay')
 async def webapp_check_payment(response: Request, us_orderId: str = Form(...)):
     client_ip = response.client.host
     if client_ip not in ALLOWED_IPS:
@@ -229,14 +229,14 @@ async def webapp_check_payment(response: Request, us_orderId: str = Form(...)):
             detail=f"IP {client_ip} is not allowed"
         )
     order_id = int(us_orderId)
-    order = order_storage.get(order_id)
-    user_id = order.get('user_id')
-    rate = order.get('rate')
-    amount = order.get('amount')
     session: DataInteraction = response.app.state.session
     scheduler: AsyncIOScheduler = response.app.state.scheduler
     bot: Bot = response.app.state.bot
     order_storage[order_id]['status'] = 'paid'
+    order = order_storage.get(order_id)
+    user_id = order.get('user_id')
+    rate = order.get('rate')
+    amount = order.get('amount')
     admin = await session.get_admin(user_id)
     await session.add_general_buys(rate, amount)
     await session.update_admin_sub(user_id, 1, rate)

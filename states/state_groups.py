@@ -48,3 +48,6 @@ class OwnerSG(StatesGroup):
     get_admin_data = State()
     rate_choose = State()
 
+    application_menu = State()
+    get_app_uid = State()
+

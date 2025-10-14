@@ -14,6 +14,7 @@ owner_dialog = Dialog(
         Const('Админ панель'),
         Column(
             Button(Const('📊 Получить статистику'), id='get_static', on_click=getters.get_static),
+            Button(Const('Выгрузка данных о партнерах'), id='partners_upload', on_click=getters.upload_partners),
             SwitchTo(Const('Выдать подписку'), id='get_admin_data_switcher', state=OwnerSG.get_admin_data),
         ),
         Cancel(Const('Закрыть админку'), id='close_admin'),
@@ -36,5 +37,20 @@ owner_dialog = Dialog(
         ),
         SwitchTo(Const('🔙Назад'), id='back_get_admin_data', state=OwnerSG.get_admin_data),
         state=OwnerSG.rate_choose
+    ),
+    Window(
+        Const('Введите номер заказа'),
+        TextInput(
+            id='get_app_uid',
+            on_success=getters.get_app_uid
+        ),
+        SwitchTo(Const('🔙 Назад'), id='back', state=OwnerSG.start),
+        state=OwnerSG.get_app_uid
+    ),
+    Window(
+        Format('<b>Данные по заказу</b>\n\n{text}'),
+        SwitchTo(Const('🔙 Назад'), id='back_get_app_uid', state=OwnerSG.get_app_uid),
+        getter=getters.application_menu_getter,
+        state=OwnerSG.application_menu
     ),
 )

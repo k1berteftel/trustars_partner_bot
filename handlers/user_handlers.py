@@ -12,15 +12,9 @@ user_router = Router()
 
 @user_router.message(CommandStart())
 async def start_dialog(msg: Message, dialog_manager: DialogManager, session: DataInteraction, command: CommandObject):
-    """
     args = command.args
     referral = None
     if args:
-        link_ids = await session.get_links()
-        ids = [i.link for i in link_ids]
-        if args in ids:
-            await session.add_admin(msg.from_user.id, msg.from_user.full_name)
-            await session.del_link(args)
         if not await session.check_user(msg.from_user.id):
             deeplinks = await session.get_deeplinks()
             deep_list = [i.link for i in deeplinks]
@@ -34,7 +28,6 @@ async def start_dialog(msg: Message, dialog_manager: DialogManager, session: Dat
                     #await session.add_refs(args)
             #except Exception as err:
                 #print(err)
-    """
     await session.add_user(msg.from_user.id, msg.from_user.username if msg.from_user.username else 'Отсутствует',
                            msg.from_user.full_name)
     if dialog_manager.has_context():

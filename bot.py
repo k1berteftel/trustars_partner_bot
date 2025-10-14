@@ -75,7 +75,7 @@ async def setup_bots(db: DataInteraction):
 
 
 async def main():
-    await database.drop_tables(Base)
+    #await database.drop_tables(Base)
     await database.create_tables(Base)
     session = database.session()
     await setup_database(session)

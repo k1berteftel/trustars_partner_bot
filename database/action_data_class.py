@@ -225,9 +225,9 @@ class DataInteraction():
             ))
         return result
 
-    async def get_bot_static(self):
+    async def get_bot_static(self, token: str = None):
         async with self._sessions() as session:
-            result = await session.scalar(select(BotStatic).where(BotStatic.bot == self._token))
+            result = await session.scalar(select(BotStatic).where(BotStatic.bot == (self._token if not token else token)))
         return result
 
     async def get_general_static(self):

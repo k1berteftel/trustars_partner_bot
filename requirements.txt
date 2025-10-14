@@ -6,6 +6,7 @@ asyncpg
 environs
 nats-py
 ormsgpack
+openpyxl
 greenlet
 pydantic
 python-multipart
