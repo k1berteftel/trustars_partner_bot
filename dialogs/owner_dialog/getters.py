@@ -60,10 +60,12 @@ async def upload_partners(clb: CallbackQuery, widget: Button, dialog_manager: Di
     for admin in admins:
         if admin.sub and admin.bot:
             bot_db: BotsTable = admin.bot
-            print(admin.bot)
-            print(bot_db.token)
             bot = Bot(token=bot_db.token)
-            bot_data = await bot.get_me()
+            try:
+                bot_data = await bot.get_me()
+                name = '@' + bot_data.username
+            except Exception:
+                name = '-'
             static = await session.get_bot_static(bot_db.token)
             columns.append(
                 [
@@ -72,7 +74,7 @@ async def upload_partners(clb: CallbackQuery, widget: Button, dialog_manager: Di
                     admin.rate,
                     admin.sub.strftime("%d-%m-%Y"),
                     static.earn,
-                    bot_data.username
+                    name
                 ]
             )
     columns.insert(0, ['Никнейм', 'Юзернейм', 'Тариф', 'Подписка до', 'Заработал', 'Бот'])
