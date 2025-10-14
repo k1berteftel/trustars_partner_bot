@@ -14,6 +14,7 @@ owner_dialog = Dialog(
         Const('Админ панель'),
         Column(
             Button(Const('📊 Получить статистику'), id='get_static', on_click=getters.get_static),
+            SwitchTo(Const('Найти заказ'), id='get_app_uid_switcher', state=OwnerSG.get_app_uid),
             Button(Const('Выгрузка данных о партнерах'), id='partners_upload', on_click=getters.upload_partners),
             SwitchTo(Const('Выдать подписку'), id='get_admin_data_switcher', state=OwnerSG.get_admin_data),
         ),
