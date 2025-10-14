@@ -88,7 +88,7 @@ class BotStatic(Base):
     bot: Mapped[str] = mapped_column(ForeignKey('bots.token', ondelete='CASCADE'))
     payments: Mapped[int] = mapped_column(BigInteger, default=0)
     buys: Mapped[int] = mapped_column(BigInteger, default=0)
-    earn: Mapped[int] = mapped_column(Integer, default=0)
+    earn: Mapped[float] = mapped_column(Float, default=0)
     charge: Mapped[int] = mapped_column(Integer, default=15)
 
 

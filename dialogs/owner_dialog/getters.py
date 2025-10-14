@@ -69,12 +69,11 @@ async def upload_partners(clb: CallbackQuery, widget: Button, dialog_manager: Di
                     '@' + admin.username if admin.username else '-',
                     admin.rate,
                     admin.sub.strftime("%d-%m-%Y"),
-                    bot_db.users,
                     static.earn,
                     bot_data.username
                 ]
             )
-    columns.insert(0, ['Никнейм', 'Юзернейм', 'Тариф', 'Подписка до', 'Пользователей в боте', 'Заработал', 'Бот'])
+    columns.insert(0, ['Никнейм', 'Юзернейм', 'Тариф', 'Подписка до', 'Заработал', 'Бот'])
     table = get_table(columns, 'Активные партнеры')
     await clb.message.answer_document(
         document=FSInputFile(path=table)

@@ -133,7 +133,7 @@ class DataInteraction():
         async with self._sessions() as session:
             await session.execute(update(BotStatic).where(BotStatic.bot == self._token).values(
                 buys=BotStatic.buys + sum,
-                earn=BotStatic.earn + round(sum * (static.charge - 10) / 100)
+                earn=BotStatic.earn + round(sum * (static.charge - 10) / 100, 2)
             ))
             await session.commit()
 
