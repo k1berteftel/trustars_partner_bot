@@ -38,7 +38,7 @@ async def get_freekassa_card(user_id: int, amount: int, app_id: int, bot_id: int
         'us_botId': str(bot_id),
         'i': 36,
         'email': f'{user_id}@telegram.org',
-        'ip': '5.35.91.55',
+        'ip': '89.23.96.22',
         'amount': str(amount),
         'currency': 'RUB'
     }
@@ -65,7 +65,7 @@ async def get_freekassa_sbp(user_id: int, amount: int, app_id: int, bot_id: int)
         'us_botId': str(bot_id),
         'i': 44,
         'email': f'{user_id}@telegram.org',
-        'ip': '5.35.91.55',
+        'ip': '89.23.96.22',
         'amount': str(amount),
         'currency': 'RUB'
     }
