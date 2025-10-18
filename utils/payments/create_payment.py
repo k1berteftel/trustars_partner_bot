@@ -31,13 +31,12 @@ def _get_signature(data: dict, api_key: str):
 async def get_freekassa_card(user_id: int, amount: int, app_id: int, bot_id: int):
     url = 'https://api.fk.life/v1/orders/create'
     data = {
-        'shopId': 32219,
+        'shopId': 66457,
         'nonce': int(datetime.datetime.today().timestamp()),
         'us_userId': str(user_id),
         'us_appId': str(app_id),
         'us_botId': str(bot_id),
         'i': 36,
-        'success_url': config.bot.webhook_url + 'payment',
         'email': f'{user_id}@telegram.org',
         'ip': '5.35.91.55',
         'amount': str(amount),
@@ -59,13 +58,12 @@ async def get_freekassa_card(user_id: int, amount: int, app_id: int, bot_id: int
 async def get_freekassa_sbp(user_id: int, amount: int, app_id: int, bot_id: int):
     url = 'https://api.fk.life/v1/orders/create'
     data = {
-        'shopId': 32219,
+        'shopId': 66457,
         'nonce': int(datetime.datetime.today().timestamp()),
         'us_userId': str(user_id),
         'us_appId': str(app_id),
         'us_botId': str(bot_id),
         'i': 44,
-        'success_url': config.bot.webhook_url + 'payment',
         'email': f'{user_id}@telegram.org',
         'ip': '5.35.91.55',
         'amount': str(amount),
@@ -170,4 +168,4 @@ async def _get_ton_usdt() -> float:
     return ton
 
 
-#print(asyncio.run(get_crypto_payment_data(50)))
+#print(asyncio.run(get_freekassa_card(23523532, 100, 1013, 2)))

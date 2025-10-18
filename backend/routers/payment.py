@@ -64,7 +64,7 @@ class StatusResponse(BaseModel):
 async def get_freekassa_payment(amount: int, order_id: int, pay: Literal['sbp', 'card']):
     url = 'https://api.fk.life/v1/orders/create'
     data = {
-        'shopId': 32219,
+        'shopId': 66457,
         'nonce': int(datetime.datetime.today().timestamp()),
         'us_orderId': str(order_id),
         'i': 44 if pay == 'sbp' else 36,
