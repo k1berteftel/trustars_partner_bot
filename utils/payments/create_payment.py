@@ -168,4 +168,4 @@ async def _get_ton_usdt() -> float:
     return ton
 
 
-#print(asyncio.run(get_freekassa_card(23523532, 100, 1013, 2)))
+#print(asyncio.run(get_freekassa_card(8005178596, 71.06, 1125, 5 )))

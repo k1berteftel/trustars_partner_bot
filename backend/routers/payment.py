@@ -70,7 +70,7 @@ async def get_freekassa_payment(amount: int, order_id: int, pay: Literal['sbp', 
         'i': 44 if pay == 'sbp' else 36,
         'email': f'{order_id}@telegram.org',
         'ip': '89.23.96.22',
-        'success_url': config.bot.webhook_url + 'webapp/check_pay',
+        'notification_url': config.bot.webhook_url + 'webapp/check_pay',
         'amount': str(amount),
         'currency': 'RUB'
     }
