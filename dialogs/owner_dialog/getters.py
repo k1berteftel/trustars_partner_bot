@@ -147,7 +147,6 @@ async def application_menu_getter(dialog_manager: DialogManager, **kwargs):
     session: DataInteraction = dialog_manager.middleware_data.get('session')
     uid_key = dialog_manager.dialog_data.get('uid_key')
     application = await session.get_application(uid_key)
-    user = await session.get_user(application.user_id)
     statuses = {
         0: 'Не оплачен',
         1: 'В процессе выполнения',
@@ -168,7 +167,7 @@ async def application_menu_getter(dialog_manager: DialogManager, **kwargs):
         'ton': 'Покупка TON'
     }
     text = (f'<b>Тип заказа</b>: {types.get(application.type)}\n'
-            f'<b>Номер заказа</b>: {application.uid_key}\n<b>Создал</b>: {application.user_id} (@{user.username})'
+            f'<b>Номер заказа</b>: {application.uid_key}\n<b>Создал</b>: {application.user_id}'
             f'\n<b>Получатель</b>: @{application.receiver}\n<b>Сумма</b>: {application.amount} звезд\n'
             f'<b>Стоимость</b>: {float(application.rub)}₽ ({application.usdt}$)\n<b>Статус заказа</b>: {statuses[application.status]}'
             f'\n<b>Статус оплаты</b>: {payments[application.payment]}'
