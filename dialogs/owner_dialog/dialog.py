@@ -17,9 +17,28 @@ owner_dialog = Dialog(
             SwitchTo(Const('Найти заказ'), id='get_app_uid_switcher', state=OwnerSG.get_app_uid),
             Button(Const('Выгрузка данных о партнерах'), id='partners_upload', on_click=getters.upload_partners),
             SwitchTo(Const('Выдать подписку'), id='get_admin_data_switcher', state=OwnerSG.get_admin_data),
+            SwitchTo(Const('Добавить покупку партнеру'), id='get_partner_token', state=OwnerSG.get_partner_token),
         ),
         Cancel(Const('Закрыть админку'), id='close_admin'),
         state=OwnerSG.start
+    ),
+    Window(
+        Const('Отправьте токен бота которому вы хотели бы добавить в статистику покупку'),
+        TextInput(
+            id='get_partner_token',
+            on_success=getters.get_partner_token
+        ),
+        SwitchTo(Const('🔙Назад'), id='back', state=OwnerSG.start),
+        state=OwnerSG.get_partner_token
+    ),
+    Window(
+        Const('Введите сумму покупки в рублях'),
+        TextInput(
+            id='get_earn_amount',
+            on_success=getters.get_earn_amount
+        ),
+        SwitchTo(Const('🔙Назад'), id='back_get_partner_token', state=OwnerSG.get_partner_token),
+        state=OwnerSG.get_earn_amount
     ),
     Window(
         Const('Введите Telegram ID или @username партнера, которому вы хотели бы выдать подписку'),

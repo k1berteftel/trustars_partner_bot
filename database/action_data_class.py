@@ -127,11 +127,11 @@ class DataInteraction():
             ))
             await session.commit()
 
-    async def add_buys(self, sum: int):
+    async def add_buys(self, sum: int, token: str = None):
         static = await self.get_bot_static()
         await self.add_general_earn(sum)
         async with self._sessions() as session:
-            await session.execute(update(BotStatic).where(BotStatic.bot == self._token).values(
+            await session.execute(update(BotStatic).where(BotStatic.bot == (token if token else self._token)).values(
                 buys=BotStatic.buys + sum,
                 earn=BotStatic.earn + round(sum * (static.charge - 10) / 100, 2)
             ))

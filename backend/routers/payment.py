@@ -24,8 +24,8 @@ webapp_router = APIRouter()
 
 
 rates = {
-    'standart': 15,
-    'full': 30
+    'standart': 15 / 2,
+    'full': 30 / 2
 }
 
 ALLOWED_IPS: list[str] = [
@@ -51,7 +51,7 @@ class PaymentMethod(BaseModel):
 
 class PaymentResponse(BaseModel):
     id: int
-    amount: int
+    amount: int | float
     rate: str
     payments: list[PaymentMethod]
 

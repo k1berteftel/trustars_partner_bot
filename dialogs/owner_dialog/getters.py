@@ -73,11 +73,12 @@ async def upload_partners(clb: CallbackQuery, widget: Button, dialog_manager: Di
                     '@' + admin.username if admin.username else '-',
                     admin.rate,
                     admin.sub.strftime("%d-%m-%Y"),
+                    static.bot,
                     static.earn,
                     name
                 ]
             )
-    columns.insert(0, ['Никнейм', 'Юзернейм', 'Тариф', 'Подписка до', 'Заработал', 'Бот'])
+    columns.insert(0, ['Никнейм', 'Юзернейм', 'Тариф', 'Подписка до', 'Токен бота', 'Заработал', 'Бот'])
     table = get_table(columns, 'Активные партнеры')
     await clb.message.answer_document(
         document=FSInputFile(path=table)
@@ -86,6 +87,30 @@ async def upload_partners(clb: CallbackQuery, widget: Button, dialog_manager: Di
         os.remove(table)
     except Exception:
         ...
+
+
+async def get_partner_token(msg: Message, widget: ManagedTextInput, dialog_manager: DialogManager, text: str):
+    session: DataInteraction = dialog_manager.middleware_data.get('session')
+    bot_static = await session.get_bot_static(text)
+    if not bot_static:
+        await msg.answer('К сожалению такого бота не найдено, пожалуйста попробуйте еще раз')
+        return
+    dialog_manager.dialog_data['token'] = text
+    await dialog_manager.switch_to(OwnerSG.get_earn_amount)
+
+
+async def get_earn_amount(msg: Message, widget: ManagedTextInput, dialog_manager: DialogManager, text: str):
+    try:
+        amount = int(text)
+    except Exception:
+        await msg.answer('Сумма покупки должна быть числом, пожалуйста попробуйте еще раз')
+        return
+    session: DataInteraction = dialog_manager.middleware_data.get('session')
+    token = dialog_manager.dialog_data.get('token')
+    await session.add_buys(amount, token)
+    await msg.answer('Покупка была успешно добавлена')
+    dialog_manager.dialog_data.clear()
+    await dialog_manager.switch_to(OwnerSG.start)
 
 
 async def get_admin_data(msg: Message, widget: ManagedTextInput, dialog_manager: DialogManager, text: str):

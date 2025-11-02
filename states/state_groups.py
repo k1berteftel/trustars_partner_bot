@@ -51,3 +51,6 @@ class OwnerSG(StatesGroup):
     application_menu = State()
     get_app_uid = State()
 
+    get_partner_token = State()
+    get_earn_amount = State()
+

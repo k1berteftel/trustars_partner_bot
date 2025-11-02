@@ -58,7 +58,7 @@ async def send_messages(bot: Bot, session: DataInteraction, keyboard: InlineKeyb
 
 
 async def clean_applications(session: DataInteraction):
-    today = (datetime.today() - timedelta(days=3)).timestamp()
+    today = (datetime.today() - timedelta(days=14)).timestamp()
     for application in await session.get_applications():
         if application.create.timestamp() <= today:
             await session.del_application(application.uid_key)
