@@ -14,7 +14,7 @@ BASE_URL = 'https://robynhood.parssms.info/'
 
 
 headers = {
-    'X-API-Key': "b0d7ed0b7d7fc48cba1692a9cce1277161c6d0ae3154328033f3317b1f1ef8d8"#config.fragment.api_key
+    'X-API-Key': config.fragment.api_key
 }
 
 
