@@ -64,6 +64,49 @@ async def clean_applications(session: DataInteraction):
             await session.del_application(application.uid_key)
 
 
+async def check_subs(bot: Bot, session: DataInteraction, scheduler: AsyncIOScheduler):
+    users = await session.get_admins()
+    for user in users:
+        if user.sub:
+            user_id = user.user_id
+            job_id = f'check_sub_{user_id}'
+            dif = (user.sub - datetime.now()).days
+            text = ''
+            if dif == 5:
+                text = f'До окончания периода подписки осталось 5 дней'
+            if dif == 1:
+                text = f'До окончания периода подписки остался 1 день'
+            if dif <= 0:
+                text = 'К сожалению срок действия подписки подошел к концу'
+                await session.update_admin_sub(user_id, None)
+
+                token = user.bot.token
+                session: DataInteraction = DataInteraction(session._sessions, user.bot.token)
+                await session.set_bot_active(False)
+                admin_bot = Bot(token=token)
+                await admin_bot.delete_webhook()
+
+                job = scheduler.get_job(job_id=job_id)
+                if job:
+                    job.remove()
+            if text:
+                try:
+                    await bot.send_message(
+                        chat_id=user_id,
+                        text=text
+                    )
+                except Exception:
+                    await session.set_active(user_id, 0)
+            else:
+                scheduler.add_job(
+                    check_sub,
+                    'interval',
+                    args=[user_id, bot, session, scheduler],
+                    id=job_id,
+                    days=1
+                )
+
+
 async def check_sub(user_id: int, bot: Bot, session: DataInteraction, scheduler: AsyncIOScheduler):
     user = await session.get_admin(user_id)
     dif = (user.sub - datetime.now()).days

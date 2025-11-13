@@ -20,7 +20,7 @@ from backend import router, webapp_router
 from services.start_consumer import start_transfer_consumer
 from storage.nats_storage import NatsStorage
 from utils.nats_connect import connect_to_nats
-from utils.schedulers import clean_applications
+from utils.schedulers import clean_applications, check_subs
 
 from database.action_data_class import setup_database, DataInteraction
 from database.build import PostgresBuild
@@ -90,6 +90,7 @@ async def main():
         args=[db],
         hours=4
     )
+    await check_subs(bot, db, scheduler)
 
     nc, js = await connect_to_nats(servers=config.nats.servers)
 

@@ -2,6 +2,7 @@ import asyncio
 import aiohttp
 import json
 import logging
+from functools import wraps
 
 from utils.payments.create_payment import _get_ton_usdt
 from config_data.config import load_config, Config
@@ -18,6 +19,25 @@ headers = {
 }
 
 
+def subgram_api_decorator(max_retries=2, delay=5):
+    def decorator(func):
+        @wraps(func)
+        async def wrapper(*args, **kwargs):
+            counter = 0
+            while True:
+                if counter >= max_retries:
+                    return None
+                try:
+                    result = await func(*args, **kwargs)
+                    return result
+                except Exception:
+                    counter += 1
+                    await asyncio.sleep(delay)
+        return wrapper
+    return decorator
+
+
+@subgram_api_decorator()
 async def get_stars_price(amount: int) -> float:
     url = BASE_URL + 'api/prices'
     data = {
@@ -39,6 +59,7 @@ async def get_stars_price(amount: int) -> float:
     return round(float(data['price']) * ton, 5)
 
 
+@subgram_api_decorator()
 async def transfer_stars(username: str, stars: int) -> bool:
     url = BASE_URL + 'api/purchase'
     data = {
@@ -62,6 +83,7 @@ async def transfer_stars(username: str, stars: int) -> bool:
     return True
 
 
+@subgram_api_decorator()
 async def transfer_premium(username: str, months: int):
     url = BASE_URL + 'api/purchase'
     data = {
@@ -85,6 +107,7 @@ async def transfer_premium(username: str, months: int):
     return True
 
 
+@subgram_api_decorator()
 async def transfer_ton(username: str, amount: int):
     url = 'https://tg.parssms.info/v1/ads/topup'
     data = {
@@ -114,11 +137,12 @@ async def transfer_ton(username: str, amount: int):
     return True
 
 
+@subgram_api_decorator()
 async def check_user_premium(username: str, months: int):
-    url = BASE_URL + 'api/test/purchase'
+    url = BASE_URL + 'api/search'
     data = {
         "product_type": "premium",
-        "recipient": username,
+        "query": username,
         "months": str(months),
         #"idempotency_key": config.fragment.api_key
     }
@@ -133,9 +157,11 @@ async def check_user_premium(username: str, months: int):
                         f.write(f'Content Premium:{await response.text()}\n\n')
                 return False
             data = await response.json()
-            print(data)
-    return True
+            status = data.get('ok')
+            if status:
+                return True
+    return False
 
 
-
-#print(asyncio.run(check_user_premium('Leggit_dev', 3)))
+print(asyncio.run(check_user_premium('RTX10TI', 3)))
+#print(asyncio.run(transfer_stars('farion', 50)))
