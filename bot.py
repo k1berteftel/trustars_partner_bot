@@ -70,8 +70,11 @@ async def setup_bots(db: DataInteraction):
         if not db_bot.active:
             bot = Bot(token=db_bot.token, default=DefaultBotProperties(parse_mode=ParseMode.HTML))
             webhook_url = f"{config.bot.webhook_url}webhook/{db_bot.id}"
-            await bot.delete_webhook(drop_pending_updates=True)
-            await bot.set_webhook(url=webhook_url, allowed_updates=allowed_updates)
+            try:
+                await bot.delete_webhook(drop_pending_updates=True)
+                await bot.set_webhook(url=webhook_url, allowed_updates=allowed_updates)
+            except Exception:
+                ...
 
 
 async def main():
