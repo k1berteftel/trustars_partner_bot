@@ -135,6 +135,24 @@ async def rate_choose(clb: CallbackQuery, widget: Button, dialog_manager: Dialog
     session: DataInteraction = dialog_manager.middleware_data.get('session')
     scheduler: AsyncIOScheduler = dialog_manager.middleware_data.get('scheduler')
     user_id = dialog_manager.dialog_data.get('user_id')
+    if rate == 'clear':
+        user = await session.get_admin(user_id)
+        await session.update_admin_sub(user_id, None)
+
+        token = user.bot.token
+        session: DataInteraction = DataInteraction(session._sessions, user.bot.token)
+        await session.set_bot_active(False)
+        admin_bot = Bot(token=token)
+        await admin_bot.delete_webhook()
+
+        job_id = f'check_sub_{user_id}'
+        job = scheduler.get_job(job_id=job_id)
+        if job:
+            job.remove()
+        await clb.answer('Подписка была успешно удалена')
+        dialog_manager.dialog_data.clear()
+        await dialog_manager.switch_to(OwnerSG.start)
+        return
     await session.update_admin_sub(user_id, 1, rate)
     job_id = f'check_sub_{user_id}'
     job = scheduler.get_job(job_id)

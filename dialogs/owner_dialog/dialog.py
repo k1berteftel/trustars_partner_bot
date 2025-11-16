@@ -53,7 +53,8 @@ owner_dialog = Dialog(
         Const('Выберите тариф, который вы хотели бы выдать данному пользователю'),
         Column(
             Button(Const('Standart'), id='standart_rate_choose', on_click=getters.rate_choose),
-            Button(Const('FULL'), id='full_rate_choose', on_click=getters.rate_choose)
+            Button(Const('FULL'), id='full_rate_choose', on_click=getters.rate_choose),
+            Button(Const('Убрать подписку'), id='clear_rate_choose', on_click=getters.rate_choose),
         ),
         SwitchTo(Const('🔙Назад'), id='back_get_admin_data', state=OwnerSG.get_admin_data),
         state=OwnerSG.rate_choose
